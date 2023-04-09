@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: NCPPlugin.src.main.java.fr.neatmonster.nocheatplus.NoCheatPl
+ us.java
+

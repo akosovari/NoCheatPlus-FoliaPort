@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -257,27 +258,6 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         }
     };
 
-    /**
-     * Run post-enable for the players who were already online during onEnable,
-     * assuming that there would've been events between.
-     * 
-     * @author asofold
-     *
-     */
-    private class PostEnableTask implements Runnable {
-
-        private final Player[] onlinePlayers;
-
-        private PostEnableTask(Player[] onlinePlayers) {
-            this.onlinePlayers = onlinePlayers;
-        }
-
-        @Override
-        public void run() {
-            postEnable(onlinePlayers);
-        }
-
-    }
 
     @SetupOrder(priority = - 100)
     private class ReloadHook implements INotifyReload{
@@ -654,13 +634,13 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         // TODO: Prevent register feature ?
         eventRegistry.clear();
 
-        BukkitScheduler sched = getServer().getScheduler();
+        GlobalRegionScheduler sched = getServer().getGlobalRegionScheduler();
 
         // Stop data-man task.
-        if (dataManTaskId != -1) {
-            sched.cancelTask(dataManTaskId);
-            dataManTaskId = -1;
-        }
+        // if (dataManTaskId != -1) {
+        //    sched.cancelTasks(dataManTaskId, getServer().getPluginManager().getPlugin("NoCheatPlus"));
+        //    dataManTaskId = -1;
+        // }
 
         // Stop the tickTask.
         if (verbose) {
@@ -673,10 +653,10 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         // (Keep the tick task locked!)
 
         // Stop consistency checking task.
-        if (consistencyCheckerTaskId != -1) {
-            sched.cancelTask(consistencyCheckerTaskId);
-            consistencyCheckerTaskId = -1;
-        }
+        // if (consistencyCheckerTaskId != -1) {
+        //    sched.cancelTasks(consistencyCheckerTaskId);
+        //    consistencyCheckerTaskId = -1;
+        // }
 
         // Just to be sure nothing gets left out.
         if (verbose) {
@@ -932,7 +912,7 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         }
 
         // Start logger task(s).
-        logManager.startTasks();
+        // logManager.startTasks();
 
         final ConfigFile config = ConfigManager.getConfigFile();
 
@@ -1030,12 +1010,16 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         TickTask.start(this);
 
         // dataMan expiration checking.
-        this.dataManTaskId  = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
+        // this.dataManTaskId  = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+        //    @Override
+        // public void run() {
+        //        pDataMan.checkExpiration();
+        //    }
+        // }, 1207, 1207);
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, dataManTaskId -> {
                 pDataMan.checkExpiration();
-            }
-        }, 1207, 1207);
+        }, 1207, 1207).hashCode();
+
 
         // Ensure dataMan is first on disableListeners.
         // TODO: Why first ?
@@ -1077,20 +1061,32 @@ public class NoCheatPlus extends JavaPlugin implements NoCheatPlusAPI {
         // TODO: re-map ExemptionManager !
         // TODO: Disable all checks for these players for one tick ?
         // TODO: Prepare check data for players [problem: permissions]?
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this, new PostEnableTask(onlinePlayers));
+        // Bukkit.getScheduler().scheduleSyncDelayedTask(this, new PostEnableTask(onlinePlayers));
+        getServer().getGlobalRegionScheduler().run(this, scheduledTask -> {
+            postEnable(onlinePlayers);
+        });
+
+
+
+
+
 
         // Mid-term cleanup (seconds range).
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                midTermCleanup();
-            }
-        }, 83, 83);
+        // Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+        //    @Override
+        //    public void run() {
+        //        midTermCleanup();
+        //    }
+        // }, 83, 83);
+
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, scheduledTask -> {
+            midTermCleanup();
+        },83,83);
 
         // Set StaticLog to more efficient output.
-        StaticLog.setStreamID(Streams.STATUS);
+        // StaticLog.setStreamID(Streams.STATUS);
         // Tell the server administrator that we finished loading NoCheatPlus now.
-        logManager.info(Streams.INIT, "Version " + getDescription().getVersion() + " is enabled.");
+        // logManager.info(Streams.INIT, "Version " + getDescription().getVersion() + " is enabled.");
     }
 
     /**

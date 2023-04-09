@@ -7,7 +7,7 @@ authors: [asofold, Evenprime, CaptainObvious0, xaw3ep, TheForgTN]
 website: none
 dev-url: https://github.com/akosvr/NoCheatPlus-FoliaPort
 
-main: fr.neatmonster.nocheatplus.NoCheatPlus.java
+main: fr.neatmonster.nocheatplus.NoCheatPlus
 api-version: 1.19
 folia-supported: true
 
