@@ -1,14 +1,15 @@
-name: ${project.name}
-version: ${project.version}-Updated-${buildDescription}
-description: ${project.description}
+name: NoCheatPlus
+version: 1.0
+description: Folia port of UpdatedNoCheatPlus
 
 author: NeatMonster
-authors: [asofold, Evenprime, CaptainObvious0, xaw3ep]
-website: ${project.url}
-dev-url: ${project.url}
+authors: [asofold, Evenprime, CaptainObvious0, xaw3ep, TheForgTN]
+website: none
+dev-url: https://github.com/akosvr/NoCheatPlus-FoliaPort
 
-main: ${project.groupId}.${project.artifactId}.${project.name}
-api-version: 1.13
+main: fr.neatmonster.nocheatplus.NoCheatPlus.java
+api-version: 1.19
+folia-supported: true
 
 softdepend:
 - ProtocolLib
